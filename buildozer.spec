@@ -10,8 +10,8 @@ source.include_patterns = assets/**/*, font/*
 
 version = 1.0
 
-# pygame-subset 是专门给纯 Pygame Android 项目的精简版
-requirements = python3,kivy,pygame
+# python3 指定 3.11，pygame 已有适配 recipe
+requirements = python3==3.11.0,kivy==2.3.0,pygame==2.1.0
 
 orientation = landscape
 fullscreen = 1
