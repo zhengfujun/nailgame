@@ -3,59 +3,66 @@ name: Build Android APK
 on:
   push:
     branches: [ main, master ]
-  workflow_dispatch:   # 允许手动触发
+  workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   build:
     runs-on: ubuntu-22.04
-    timeout-minutes: 60
+    timeout-minutes: 90
 
     steps:
-      - name: Checkout 代码
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: 设置 Python 3.10
+      - name: Setup Python 3.10
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
-      - name: 安装系统依赖
+      - name: Install system dependencies
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y \
-            git zip unzip openjdk-17-jdk \
-            autoconf automake libtool \
+            git zip unzip \
+            openjdk-17-jdk \
+            autoconf automake libtool pkg-config \
             libffi-dev libssl-dev \
-            libgstreamer1.0-dev gstreamer1.0-plugins-base \
             libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev \
-            build-essential ccache
+            build-essential ccache \
+            python3-dev
 
-      - name: 缓存 Buildozer 全局目录
+      - name: Cache Buildozer global dir
         uses: actions/cache@v4
         with:
           path: |
             ~/.buildozer
             ~/.gradle
           key: buildozer-${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
-          restore-keys: |
-            buildozer-${{ runner.os }}-
+          restore-keys: buildozer-${{ runner.os }}-
 
-      - name: 安装 Buildozer
+      - name: Install Buildozer & Cython
         run: |
-          pip install --upgrade pip
-          pip install buildozer cython
+          pip install --upgrade pip wheel
+          pip install buildozer==1.5.0 cython==0.29.36
 
-      - name: 构建 APK（Debug 版）
+      - name: Accept Android SDK licenses
         run: |
-          buildozer android debug 2>&1 | tail -100
+          mkdir -p ~/.android
+          echo "24333f8a63b6825ea9c5514f83c2829b004d1fee" > ~/.android/repositories.cfg
+          yes | buildozer android debug 2>&1 | tail -200 || true
 
-      - name: 上传 APK 产物
+      - name: Build APK
+        run: buildozer android debug 2>&1 | tail -200
+
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: NailStudio-debug-apk
           path: bin/*.apk
           retention-days: 30
 
-      - name: 显示 APK 信息
-        run: |
-          ls -lh bin/*.apk 2>/dev/null || echo "APK 未找到，构建可能失败"
+      - name: Show APK info
+        run: ls -lh bin/*.apk 2>/dev/null || echo "APK not found"

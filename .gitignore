@@ -2,6 +2,7 @@ __pycache__/
 build/
 dist/
 *.spec
+!buildozer.spec
 savegame.json
 layout_export.json
 layout_export.py
