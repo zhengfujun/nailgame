@@ -10,8 +10,8 @@ source.include_patterns = assets/**/*, font/*
 
 version = 1.0
 
-# python3 指定 3.11，pygame 已有适配 recipe
-requirements = python3,kivy==2.3.0,pygame==2.1.0
+# pygame 2.6.x 的 p4a recipe 已支持 Python 3.14，解决 longintrepr.h 问题
+requirements = python3,kivy==2.3.0,pygame==2.6.1
 
 orientation = landscape
 fullscreen = 1
