@@ -13,6 +13,9 @@ version = 1.0
 # 只用 pygame，不含 kivy
 requirements = python3,pygame==2.6.1
 
+# 强制从源码编译 pygame，禁用预编译 ARM 不兼容的 x86 轮子
+p4a.extra_args = --skip-prebuilt
+
 # sdl2 bootstrap（pygame bootstrap 已被移除）
 p4a.bootstrap = sdl2
 
