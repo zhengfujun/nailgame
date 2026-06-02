@@ -69,6 +69,22 @@ jobs:
           echo "--- After patch ---"
           grep -n "kivy" "$BOOTSTRAP_FILE" || echo "kivy removed successfully"
 
+      - name: Pre-build to create hostpython, then install cython into it
+        run: |
+          # 先跑一次触发 hostpython 创建（失败没关系）
+          buildozer android debug 2>&1 | tail -20 || true
+          # 找到 p4a 内部 hostpython 的 pip 并装 cython
+          HOSTPIP=$(find ~/.buildozer /home/runner/work -name "pip" -path "*/hostpython3/*" 2>/dev/null | head -1)
+          HOSTPY=$(find ~/.buildozer /home/runner/work -name "python" -path "*/hostpython3/native-build/root*" 2>/dev/null | head -1)
+          echo "hostpip: $HOSTPIP"
+          echo "hostpython: $HOSTPY"
+          if [ -n "$HOSTPY" ]; then
+            "$HOSTPY" -m pip install cython==3.0.11
+            echo "cython installed into hostpython"
+          else
+            echo "hostpython not found yet, will retry in main build"
+          fi
+
       - name: Build APK
         run: buildozer android debug 2>&1 | tail -300
 
