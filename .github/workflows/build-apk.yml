@@ -40,8 +40,8 @@ jobs:
           path: |
             ~/.buildozer
             ~/.gradle
-          key: buildozer-${{ runner.os }}-v7-${{ hashFiles('buildozer.spec') }}
-          restore-keys: buildozer-${{ runner.os }}-v7-
+          key: buildozer-${{ runner.os }}-v8-${{ hashFiles('buildozer.spec') }}
+          restore-keys: buildozer-${{ runner.os }}-v8-
 
       - name: Install Buildozer and p4a
         run: |
