@@ -86,6 +86,8 @@ jobs:
           fi
 
       - name: Build APK
+        env:
+          JAVA_HOME: /usr/lib/jvm/temurin-17-jdk-amd64
         run: |
           cp nail_android.py main.py
           buildozer android debug 2>&1 | tail -300
