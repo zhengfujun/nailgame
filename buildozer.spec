@@ -10,11 +10,14 @@ source.include_patterns = assets/**/*, font/*
 
 version = 1.0
 
-# 纯 pygame，不依赖 kivy
+# 只用 pygame，不含 kivy
 requirements = python3,pygame==2.6.1
 
-# 使用 pygame bootstrap，跳过 kivy 整个工具链
-p4a.bootstrap = pygame
+# sdl2 bootstrap（pygame bootstrap 已被移除）
+p4a.bootstrap = sdl2
+
+# 使用 PythonActivity（不是 KivyActivity），pygame 可直接驱动
+android.entrypoint = org.kivy.android.PythonActivity
 
 orientation = landscape
 fullscreen = 1

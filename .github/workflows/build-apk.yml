@@ -40,18 +40,36 @@ jobs:
           path: |
             ~/.buildozer
             ~/.gradle
-          key: buildozer-${{ runner.os }}-v6-${{ hashFiles('buildozer.spec') }}
-          restore-keys: buildozer-${{ runner.os }}-v6-
+          key: buildozer-${{ runner.os }}-v7-${{ hashFiles('buildozer.spec') }}
+          restore-keys: buildozer-${{ runner.os }}-v7-
 
       - name: Install Buildozer and p4a
         run: |
           pip install --upgrade pip wheel
           pip install cython==3.0.11
-          # p4a v2026.05.09 的 pygame recipe 支持 Python 3.14
           pip install buildozer==1.5.0
           pip install git+https://github.com/kivy/python-for-android.git@v2026.05.09
 
-      - name: Build APK (pygame bootstrap, no kivy)
+      - name: Patch p4a sdl2 bootstrap - remove kivy dependency
+        run: |
+          # 找到 sdl2 bootstrap 文件并移除 kivy 依赖
+          P4A_PATH=$(python -c "import pythonforandroid; import os; print(os.path.dirname(pythonforandroid.__file__))")
+          echo "p4a path: $P4A_PATH"
+
+          # 修改 sdl2 bootstrap，让它不强制要求 kivy
+          BOOTSTRAP_FILE="$P4A_PATH/bootstraps/sdl2/__init__.py"
+          echo "Patching: $BOOTSTRAP_FILE"
+          cat "$BOOTSTRAP_FILE" | grep -n "kivy" | head -20 || true
+
+          # 用 sed 移除 kivy 相关依赖行
+          sed -i "s/'kivy',\?//g" "$BOOTSTRAP_FILE"
+          sed -i 's/"kivy",\?//g' "$BOOTSTRAP_FILE"
+          sed -i "/kivy/d" "$BOOTSTRAP_FILE" || true
+
+          echo "--- After patch ---"
+          grep -n "kivy" "$BOOTSTRAP_FILE" || echo "kivy removed successfully"
+
+      - name: Build APK
         run: buildozer android debug 2>&1 | tail -300
 
       - name: Upload APK
