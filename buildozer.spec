@@ -5,7 +5,7 @@ package.domain = com.nailstudio.game
 
 source.dir = .
 source.include_exts = py,png,jpg,ttf,ttc,json
-source.main = nail_android.py
+source.main = main.py
 source.include_patterns = assets/**/*, font/*
 
 version = 1.0
