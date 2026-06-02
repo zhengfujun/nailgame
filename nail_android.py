@@ -4,8 +4,35 @@
 触控: 单指点击等同鼠标左键，无需额外处理
 字体: 内置 font/NotoSansCJK.ttf，不依赖系统字体
 """
-import pygame
-import sys, datetime, random, json, os, math
+import sys, datetime, random, json, os, math, traceback
+
+# ── 崩溃日志：写到 /sdcard/NailStudio/crash.log ─────────────────────
+_LOG_PATH = "/sdcard/NailStudio/crash.log"
+
+def _setup_crash_log():
+    try:
+        os.makedirs("/sdcard/NailStudio", exist_ok=True)
+        # 重定向 stderr 到日志文件
+        sys.stderr = open(_LOG_PATH, "w", encoding="utf-8")
+        sys.stdout = sys.stderr
+    except Exception:
+        pass
+
+def _write_crash(exc):
+    try:
+        with open(_LOG_PATH, "a", encoding="utf-8") as f:
+            f.write(f"\n=== CRASH {datetime.datetime.now()} ===\n")
+            f.write(traceback.format_exc())
+    except Exception:
+        pass
+
+_setup_crash_log()
+
+try:
+    import pygame
+except Exception as e:
+    _write_crash(e)
+    raise
 
 # ── Android / 桌面双模式路径 ─────────────────────────────────────────
 
@@ -719,4 +746,8 @@ class Game:
             self.clock.tick(FPS)
 
 if __name__ == "__main__":
-    Game().run()
+    try:
+        Game().run()
+    except Exception as e:
+        _write_crash(e)
+        raise
