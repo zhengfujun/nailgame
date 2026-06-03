@@ -17,10 +17,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Python 3.10
+      - name: Setup Python 3.11
         uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.11"
 
       - name: Install system dependencies
         run: |
@@ -40,67 +40,19 @@ jobs:
           path: |
             ~/.buildozer
             ~/.gradle
-          key: buildozer-${{ runner.os }}-v9-${{ hashFiles('buildozer.spec') }}
-          restore-keys: buildozer-${{ runner.os }}-v9-
+          key: buildozer-${{ runner.os }}-v10-${{ hashFiles('buildozer.spec') }}
+          restore-keys: buildozer-${{ runner.os }}-v10-
 
       - name: Install Buildozer and p4a
         run: |
           pip install --upgrade pip wheel
-          pip install cython==3.0.11
+          pip install cython==0.29.37
           pip install buildozer==1.5.0
-          pip install git+https://github.com/kivy/python-for-android.git@v2026.05.09
-
-      - name: Patch p4a sdl2 bootstrap - remove kivy dependency
-        run: |
-          # 找到 sdl2 bootstrap 文件并移除 kivy 依赖
-          P4A_PATH=$(python -c "import pythonforandroid; import os; print(os.path.dirname(pythonforandroid.__file__))")
-          echo "p4a path: $P4A_PATH"
-
-          # 修改 sdl2 bootstrap，让它不强制要求 kivy
-          BOOTSTRAP_FILE="$P4A_PATH/bootstraps/sdl2/__init__.py"
-          echo "Patching: $BOOTSTRAP_FILE"
-          cat "$BOOTSTRAP_FILE" | grep -n "kivy" | head -20 || true
-
-          # 用 sed 移除 kivy 相关依赖行
-          sed -i "s/'kivy',\?//g" "$BOOTSTRAP_FILE"
-          sed -i 's/"kivy",\?//g' "$BOOTSTRAP_FILE"
-          sed -i "/kivy/d" "$BOOTSTRAP_FILE" || true
-
-          echo "--- After patch ---"
-          grep -n "kivy" "$BOOTSTRAP_FILE" || echo "kivy removed successfully"
-
-      - name: Pre-build to create hostpython, then install cython into it
-        run: |
-          # 先跑一次触发 hostpython 创建（失败没关系）
-          buildozer android debug 2>&1 | tail -20 || true
-          # 找到 p4a 内部 hostpython 的 pip 并装 cython
-          HOSTPIP=$(find ~/.buildozer /home/runner/work -name "pip" -path "*/hostpython3/*" 2>/dev/null | head -1)
-          HOSTPY=$(find ~/.buildozer /home/runner/work -name "python" -path "*/hostpython3/native-build/root*" 2>/dev/null | head -1)
-          echo "hostpip: $HOSTPIP"
-          echo "hostpython: $HOSTPY"
-          if [ -n "$HOSTPY" ]; then
-            "$HOSTPY" -m pip install cython==3.0.11
-            echo "cython installed into hostpython"
-          else
-            echo "hostpython not found yet, will retry in main build"
-          fi
-
-      - name: Patch p4a pygame recipe - disable SSE2 for ARM cross-compile
-        run: |
-          P4A_PATH=$(python -c "import pythonforandroid; import os; print(os.path.dirname(pythonforandroid.__file__))")
-          echo "p4a path: $P4A_PATH"
-          PYGAME_RECIPE=$(find "$P4A_PATH/recipes" -maxdepth 3 -name "__init__.py" -path "*/pygame*" | head -1)
-          echo "pygame recipe: $PYGAME_RECIPE"
-          if [ -n "$PYGAME_RECIPE" ]; then
-            python3 patch_pygame_recipe.py "$PYGAME_RECIPE"
-          else
-            echo "pygame recipe not found, relying on env var only"
-          fi
+          pip install python-for-android==2023.9.16
 
       - name: Build APK
         env:
           JAVA_HOME: /usr/lib/jvm/temurin-17-jdk-amd64
-          PYGAME_DETECT_AVX2: "0"
         run: |
           cp nail_android.py main.py
           buildozer android debug 2>&1 | tail -300

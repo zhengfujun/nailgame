@@ -10,17 +10,9 @@ source.include_patterns = assets/**/*, font/*
 
 version = 1.0
 
-# 只用 pygame，不含 kivy
-requirements = python3,pygame
+requirements = python3,pygame==2.1.3
 
-# 使用本地自定义 recipe，版本 2.6.1 且禁用 SSE2/AVX2
-p4a.local_recipes = ./p4a_recipes
-p4a.extra_args = --skip-prebuilt
-
-# sdl2 bootstrap（pygame bootstrap 已被移除）
 p4a.bootstrap = sdl2
-
-# 使用 PythonActivity（不是 KivyActivity），pygame 可直接驱动
 android.entrypoint = org.kivy.android.PythonActivity
 
 orientation = landscape
