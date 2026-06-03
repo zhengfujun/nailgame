@@ -13,6 +13,12 @@ from pythonforandroid.util import (
     ensure_dir,
 )
 
+try:
+    from pythonforandroid.prerequisites import OpenSSLPrerequisite
+    _has_openssl_prereq = True
+except ImportError:
+    _has_openssl_prereq = False
+
 HOSTPYTHON_VERSION_UNSET_MESSAGE = (
     'The hostpython recipe must have set version'
 )
@@ -30,6 +36,8 @@ class HostPython3Recipe(Recipe):
 
     url = 'https://www.python.org/ftp/python/{version}/Python-{version}.tgz'
 
+    patches = []
+
     @property
     def _exe_name(self):
         if not self.version:
@@ -40,8 +48,32 @@ class HostPython3Recipe(Recipe):
     def python_exe(self):
         return join(self.get_path_to_python(), self._exe_name)
 
+    @property
+    def local_bin(self):
+        return join(self.get_path_to_python(), 'bin')
+
+    @property
+    def site_bin(self):
+        return join(
+            self.get_path_to_python(),
+            f'lib/python{self.version[:4]}/site-packages/bin'
+        )
+
     def get_recipe_env(self, arch=None):
-        return os.environ.copy()
+        env = os.environ.copy()
+        if _has_openssl_prereq:
+            try:
+                openssl_prereq = OpenSSLPrerequisite()
+                pkg = openssl_prereq.pkg_config_location
+                if env.get("PKG_CONFIG_PATH", ""):
+                    env["PKG_CONFIG_PATH"] = os.pathsep.join(
+                        [pkg, env["PKG_CONFIG_PATH"]]
+                    )
+                else:
+                    env["PKG_CONFIG_PATH"] = pkg
+            except Exception:
+                pass
+        return env
 
     def should_build(self, arch):
         if Path(self.python_exe).exists():
