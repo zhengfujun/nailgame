@@ -1,9 +1,11 @@
 name: Build Android APK
 
 on:
-  push:
-    branches: [ main, master ]
   workflow_dispatch:
+    inputs:
+      dummy:
+        description: 'Disabled - use build-web.yml instead'
+        required: false
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
