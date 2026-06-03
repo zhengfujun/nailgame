@@ -85,10 +85,22 @@ jobs:
             echo "hostpython not found yet, will retry in main build"
           fi
 
+      - name: Patch p4a pygame recipe - disable SSE2 for ARM cross-compile
+        run: |
+          P4A_PATH=$(python -c "import pythonforandroid; import os; print(os.path.dirname(pythonforandroid.__file__))")
+          echo "p4a path: $P4A_PATH"
+          PYGAME_RECIPE=$(find "$P4A_PATH/recipes" -maxdepth 3 -name "__init__.py" -path "*/pygame*" | head -1)
+          echo "pygame recipe: $PYGAME_RECIPE"
+          if [ -n "$PYGAME_RECIPE" ]; then
+            python3 patch_pygame_recipe.py "$PYGAME_RECIPE"
+          else
+            echo "pygame recipe not found, relying on env var only"
+          fi
+
       - name: Build APK
         env:
           JAVA_HOME: /usr/lib/jvm/temurin-17-jdk-amd64
-          PIP_NO_BINARY: pygame
+          PYGAME_DETECT_AVX2: "0"
         run: |
           cp nail_android.py main.py
           buildozer android debug 2>&1 | tail -300
