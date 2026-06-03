@@ -18,6 +18,16 @@ class Pygame2Recipe(CompiledComponentsPythonRecipe):
     def prebuild_arch(self, arch):
         super().prebuild_arch(arch)
         with current_directory(self.get_build_dir(arch.arch)):
+            # pygame setup.py uses distutils.ccompiler.spawn which was removed in Python 3.14.
+            # Patch it to use subprocess.check_call instead.
+            setup_py = open("setup.py").read()
+            if "distutils.ccompiler.spawn" in setup_py:
+                setup_py = setup_py.replace(
+                    "distutils.ccompiler.spawn(cmd, dry_run=self.dry_run, **kwargs)",
+                    "(__import__('subprocess').check_call(cmd) if not self.dry_run else None)"
+                )
+                open("setup.py", "w").write(setup_py)
+
             setup_template = open(join("buildconfig", "Setup.Android.SDL2.in")).read()
             env = self.get_recipe_env(arch)
             env['ANDROID_ROOT'] = join(self.ctx.ndk.sysroot, 'usr')
