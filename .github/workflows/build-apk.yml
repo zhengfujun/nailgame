@@ -11,7 +11,7 @@ env:
 jobs:
   build:
     runs-on: ubuntu-22.04
-    timeout-minutes: 90
+    timeout-minutes: 120
 
     steps:
       - name: Checkout
@@ -40,8 +40,8 @@ jobs:
           path: |
             ~/.buildozer
             ~/.gradle
-          key: buildozer-${{ runner.os }}-v10-${{ hashFiles('buildozer.spec') }}
-          restore-keys: buildozer-${{ runner.os }}-v10-
+          key: buildozer-${{ runner.os }}-v11-${{ hashFiles('buildozer.spec') }}
+          restore-keys: buildozer-${{ runner.os }}-v11-
 
       - name: Install Buildozer and p4a
         run: |
@@ -50,21 +50,12 @@ jobs:
           pip install buildozer==1.5.0
           pip install python-for-android==2023.9.16
 
-      - name: Set p4a source dir in buildozer.spec
-        run: |
-          P4A_DIR=$(python -c "import pythonforandroid, os; print(os.path.dirname(os.path.dirname(pythonforandroid.__file__)))")
-          echo "p4a installed at: $P4A_DIR"
-          # Override p4a source to use the pip-installed version (not a fresh git clone)
-          sed -i "s|p4a.fork = kivy|p4a.source_dir = $P4A_DIR|" buildozer.spec
-          sed -i "/p4a.branch/d" buildozer.spec
-          cat buildozer.spec
-
       - name: Build APK
         env:
           JAVA_HOME: /usr/lib/jvm/temurin-17-jdk-amd64
         run: |
           cp nail_android.py main.py
-          buildozer android debug 2>&1 | tail -300
+          buildozer android debug 2>&1 | tail -400
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
