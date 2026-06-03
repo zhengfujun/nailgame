@@ -5,6 +5,11 @@ on:
     branches: [ main, master ]
   workflow_dispatch:
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
   build:
     runs-on: ubuntu-22.04
@@ -24,16 +29,19 @@ jobs:
       - name: Build web bundle
         run: pygbag --build .
 
-      - name: Upload web bundle
-        uses: actions/upload-artifact@v4
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          name: NailStudio-web
-          path: build/web/
-          retention-days: 30
+          path: build/web
 
+  deploy:
+    needs: build
+    runs-on: ubuntu-22.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        if: github.ref == 'refs/heads/main'
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: build/web
+        id: deployment
+        uses: actions/deploy-pages@v4
