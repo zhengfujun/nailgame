@@ -50,6 +50,15 @@ jobs:
           pip install buildozer==1.5.0
           pip install python-for-android==2023.9.16
 
+      - name: Set p4a source dir in buildozer.spec
+        run: |
+          P4A_DIR=$(python -c "import pythonforandroid, os; print(os.path.dirname(os.path.dirname(pythonforandroid.__file__)))")
+          echo "p4a installed at: $P4A_DIR"
+          # Override p4a source to use the pip-installed version (not a fresh git clone)
+          sed -i "s|p4a.fork = kivy|p4a.source_dir = $P4A_DIR|" buildozer.spec
+          sed -i "/p4a.branch/d" buildozer.spec
+          cat buildozer.spec
+
       - name: Build APK
         env:
           JAVA_HOME: /usr/lib/jvm/temurin-17-jdk-amd64

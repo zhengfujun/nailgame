@@ -12,6 +12,8 @@ version = 1.0
 
 requirements = python3,pygame==2.1.3
 
+p4a.fork = kivy
+p4a.branch = 2023.9.16
 p4a.bootstrap = sdl2
 android.entrypoint = org.kivy.android.PythonActivity
 
