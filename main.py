@@ -33,15 +33,35 @@ _ng.load_game()
 
 def _patch_fonts():
     """在 pygame.init() 之后、Game() 之前，用捆绑字体覆盖字体缓存。"""
-    font_path = "font/NotoSansCJK.ttf"
-    if not os.path.exists(font_path):
+    import platform
+    cwd = os.getcwd()
+    print(f"[font] cwd={cwd}")
+    print(f"[font] __file__={__file__}")
+    print(f"[font] platform={platform.system()}")
+
+    candidates = [
+        "font/NotoSansCJK.ttf",
+        os.path.join(cwd, "font", "NotoSansCJK.ttf"),
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), "font", "NotoSansCJK.ttf"),
+    ]
+    font_path = None
+    for p in candidates:
+        print(f"[font] checking {p} -> exists={os.path.exists(p)}")
+        if os.path.exists(p):
+            font_path = p
+            break
+
+    if not font_path:
+        print("[font] WARNING: NotoSansCJK.ttf not found, Chinese will show as squares")
         return
+
+    print(f"[font] loading from {font_path}")
     _ng._font_obj_cache.clear()
     for size in (13, 16, 20, 26, 34):
         try:
             _ng._font_obj_cache[size] = pygame.font.Font(font_path, size)
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"[font] ERROR loading size {size}: {e}")
 
 
 async def main():
