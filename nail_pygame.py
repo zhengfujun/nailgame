@@ -208,6 +208,12 @@ def export_layout():
 
 # ── 存档 ─────────────────────────────────────────────────────────────
 
+_WEB_SAVE_KEY = "nailstudio_save"
+
+def _is_web_env():
+    import sys
+    return sys.platform in ("emscripten", "wasi")
+
 def save_game():
     data = {
         "coins": state["coins"], "score": state["score"],
@@ -217,14 +223,29 @@ def save_game():
         "my_works": [{k: (list(v) if isinstance(v, tuple) else v)
                       for k, v in w.items()} for w in state["my_works"]],
     }
-    with open(SAVE_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+    try:
+        if _is_web_env():
+            from js import localStorage
+            localStorage.setItem(_WEB_SAVE_KEY, json.dumps(data, ensure_ascii=False))
+        else:
+            with open(SAVE_FILE, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        print(f"[save] error: {e}")
 
 def load_game():
-    if not os.path.exists(SAVE_FILE): return
     try:
-        with open(SAVE_FILE, "r", encoding="utf-8") as f:
-            data = json.load(f)
+        if _is_web_env():
+            from js import localStorage
+            raw = localStorage.getItem(_WEB_SAVE_KEY)
+            if not raw:
+                return
+            data = json.loads(raw)
+        else:
+            if not os.path.exists(SAVE_FILE):
+                return
+            with open(SAVE_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
         state["coins"]           = data.get("coins", 0)
         state["score"]           = data.get("score", 0)
         state["orders_done"]     = data.get("orders_done", 0)
@@ -237,6 +258,8 @@ def load_game():
             if "deco_color" in w and isinstance(w["deco_color"], list):
                 w["deco_color"] = tuple(w["deco_color"])
             state["my_works"].append(w)
+    except Exception as e:
+        print(f"[load] error: {e}")
     except Exception:
         pass
 
