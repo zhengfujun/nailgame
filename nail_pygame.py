@@ -681,9 +681,11 @@ class PickerScene(Scene):
             else:
                 state["score"]=max(0,state["score"]-5); result=("fail",0)
             state["my_works"].append({"shape":shape,"color":cname,"color_rgb":crgb,"deco":dname,"deco_color":dcolor,"time":ts,"perfect":ac})
+            save_game()
             self.switch("result",{"shape":shape,"color_rgb":crgb,"deco":dname,"deco_color":dcolor,"cname":cname,"order":o,"result":result,"correct_shape":cs,"correct_color":cc,"correct_deco":cd})
         else:
             state["my_works"].append({"shape":shape,"color":cname,"color_rgb":crgb,"deco":dname,"deco_color":dcolor,"time":ts,"perfect":False})
+            save_game()
             self.switch("result_free",{"shape":shape,"color_rgb":crgb,"deco":dname,"deco_color":dcolor,"cname":cname})
     def draw(self,surf,mouse):
         surf.fill(BG); draw_hud(surf,self.fonts)
@@ -837,6 +839,7 @@ class ShopScene(Scene):
                     state["coins"]-=c
                     if k=="color": state["unlocked_colors"].add(n)
                     else:          state["unlocked_decos"].add(n)
+                    save_game()
                     self.msg=f"已解锁 {n}！剩余金币：{state['coins']}"; self.msg_ok=True; self._build()
                 return
     def draw(self,surf,mouse):

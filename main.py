@@ -42,8 +42,6 @@ async def main():
     game.debug_on = False
     game._resize()
 
-    last_save_tick = pygame.time.get_ticks()
-
     while True:
         mouse_abs = pygame.mouse.get_pos()
 
@@ -69,12 +67,6 @@ async def main():
 
         pygame.display.flip()
         game.clock.tick(FPS)
-
-        # 每 30 秒自动存档
-        now = pygame.time.get_ticks()
-        if now - last_save_tick > 30000:
-            save_game()
-            last_save_tick = now
 
         await asyncio.sleep(0)
 
