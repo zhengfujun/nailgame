@@ -10,21 +10,46 @@ import pygame
 # Web 环境下禁用存档文件读写
 import nail_pygame as _ng
 
-_MEMORY_SAVE = {}
+import json
+
+_LS_KEY = "nailstudio_save"
 
 def _save_game_web():
-    _MEMORY_SAVE["coins"]   = _ng.coins
-    _MEMORY_SAVE["unlocks"] = list(_ng.unlocked_items)
+    try:
+        import platform
+        data = json.dumps({
+            "coins":   _ng.coins,
+            "unlocks": list(_ng.unlocked_items),
+        })
+        if platform.system() == "Emscripten":
+            from js import localStorage
+            localStorage.setItem(_LS_KEY, data)
+        else:
+            # 桌面回退：写文件
+            with open("savegame.json", "w") as f:
+                f.write(data)
+    except Exception as e:
+        print(f"[save] error: {e}")
 
 def _load_game_web():
-    if not _MEMORY_SAVE:
-        return
     try:
-        _ng.coins = _MEMORY_SAVE.get("coins", _ng.coins)
-        for item in _MEMORY_SAVE.get("unlocks", []):
+        import platform
+        data = None
+        if platform.system() == "Emscripten":
+            from js import localStorage
+            data = localStorage.getItem(_LS_KEY)
+        else:
+            if os.path.exists("savegame.json"):
+                with open("savegame.json") as f:
+                    data = f.read()
+        if not data:
+            return
+        d = json.loads(data)
+        _ng.coins = d.get("coins", _ng.coins)
+        for item in d.get("unlocks", []):
             _ng.unlocked_items.add(item)
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"[load] error: {e}")
 
 _ng.save_game = _save_game_web
 _ng.load_game = _load_game_web
