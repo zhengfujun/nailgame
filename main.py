@@ -7,6 +7,8 @@ import os
 import json
 import pygame
 
+print(f"PLATFORM_CHECK: sys.platform={sys.platform!r}")
+
 import nail_pygame as _ng
 
 

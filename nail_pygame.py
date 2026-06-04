@@ -215,6 +215,7 @@ def _is_web_env():
     return sys.platform in ("emscripten", "wasi")
 
 def save_game():
+    print(f"[save] called, _is_web={_is_web_env()}, coins={state['coins']}")
     data = {
         "coins": state["coins"], "score": state["score"],
         "orders_done": state["orders_done"], "orders_correct": state["orders_correct"],
