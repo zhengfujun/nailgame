@@ -29,6 +29,16 @@ jobs:
       - name: Build web bundle
         run: pygbag --build --ume_block 0 .
 
+      - name: Bust cache - append timestamp to archive URL in HTML
+        run: |
+          TS=$(date +%s)
+          HTML=build/web/index.html
+          # 给 nailgame.tar.gz 加时间戳参数，强制浏览器每次重新下载
+          sed -i "s|nailgame\.tar\.gz\"|nailgame.tar.gz?v=${TS}\"|g" "$HTML"
+          # 加 no-store meta 标签防止缓存 HTML 本身
+          sed -i 's|<head>|<head>\n<meta http-equiv="Cache-Control" content="no-store">|' "$HTML"
+          echo "Cache-busted with timestamp: $TS"
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
