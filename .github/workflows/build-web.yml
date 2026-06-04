@@ -27,7 +27,7 @@ jobs:
         run: pip install pygbag
 
       - name: Build web bundle
-        run: pygbag --build .
+        run: pygbag --build --no_splash .
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
