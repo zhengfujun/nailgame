@@ -338,11 +338,18 @@ DBG_GREEN = (80,  200, 120)
 _font_obj_cache = {}
 
 def load_fonts():
-    cands = ["microsoftyahei","simhei","simsun","notosanscjk","wqymicrohei"]
-    found = None
-    for c in cands:
-        f = pygame.font.match_font(c)
-        if f: found = f; break
+    # 优先使用本地捆绑的 CJK 字体，确保 Web/Android 环境中文正常显示
+    _bundled = os.path.join(os.path.dirname(os.path.abspath(__file__)), "font", "NotoSansCJK.ttf")
+    if not os.path.exists(_bundled):
+        _bundled = os.path.join("font", "NotoSansCJK.ttf")
+    if os.path.exists(_bundled):
+        found = _bundled
+    else:
+        cands = ["microsoftyahei","simhei","simsun","notosanscjk","wqymicrohei"]
+        found = None
+        for c in cands:
+            f = pygame.font.match_font(c)
+            if f: found = f; break
     def mk(size):
         if size not in _font_obj_cache:
             _font_obj_cache[size] = (pygame.font.Font(found, size) if found
