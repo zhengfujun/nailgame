@@ -227,7 +227,7 @@ def save_game():
     try:
         if _is_web_env():
             from js import localStorage
-            localStorage.setItem(_WEB_SAVE_KEY, json.dumps(data, ensure_ascii=False))
+            localStorage.setItem(_WEB_SAVE_KEY, json.dumps(data, ensure_ascii=True))
         else:
             with open(SAVE_FILE, "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
@@ -240,6 +240,11 @@ def load_game():
             from js import localStorage
             raw = localStorage.getItem(_WEB_SAVE_KEY)
             if not raw:
+                return
+            # 检测乱码：正常存档不含 \x83 这样的原始字节转义
+            if "\\x83" in raw or "Ã\x83" in raw:
+                print("[load] detected corrupted save, clearing")
+                localStorage.removeItem(_WEB_SAVE_KEY)
                 return
             data = json.loads(raw)
         else:
