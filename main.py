@@ -14,40 +14,58 @@ import json
 
 _LS_KEY = "nailstudio_save"
 
-def _save_game_web():
+def _is_web():
     try:
         import platform
+        p = platform.system()
+        print(f"[save] platform={p}")
+        if p == "Emscripten":
+            return True
+        # 有些 Pygbag 版本用 sys.platform
+        import sys
+        print(f"[save] sys.platform={sys.platform}")
+        return sys.platform in ("emscripten", "wasi")
+    except Exception:
+        return False
+
+def _save_game_web():
+    try:
         data = json.dumps({
             "coins":   _ng.coins,
             "unlocks": list(_ng.unlocked_items),
         })
-        if platform.system() == "Emscripten":
+        print(f"[save] saving coins={_ng.coins} unlocks={len(_ng.unlocked_items)}")
+        if _is_web():
             from js import localStorage
             localStorage.setItem(_LS_KEY, data)
+            print("[save] saved to localStorage")
         else:
-            # 桌面回退：写文件
             with open("savegame.json", "w") as f:
                 f.write(data)
+            print("[save] saved to file")
     except Exception as e:
         print(f"[save] error: {e}")
 
 def _load_game_web():
     try:
-        import platform
+        print("[load] attempting load...")
         data = None
-        if platform.system() == "Emscripten":
+        if _is_web():
             from js import localStorage
             data = localStorage.getItem(_LS_KEY)
+            print(f"[load] from localStorage: {data}")
         else:
             if os.path.exists("savegame.json"):
                 with open("savegame.json") as f:
                     data = f.read()
         if not data:
+            print("[load] no save data found")
             return
         d = json.loads(data)
         _ng.coins = d.get("coins", _ng.coins)
         for item in d.get("unlocks", []):
             _ng.unlocked_items.add(item)
+        print(f"[load] loaded coins={_ng.coins}")
     except Exception as e:
         print(f"[load] error: {e}")
 
