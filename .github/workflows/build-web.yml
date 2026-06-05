@@ -26,8 +26,22 @@ jobs:
       - name: Install pygbag
         run: pip install pygbag
 
+      - name: Download Pygbag CDN assets locally
+        run: |
+          # 下载 Python WebAssembly 解释器到本地，避免运行时从 GitHub CDN 加载
+          mkdir -p build/web/cdn/0.9.3/cpython312
+          mkdir -p build/web/cdn/cp312
+          BASE="https://pygame-web.github.io/cdn/0.9.3"
+          wget -q "$BASE/pythons.js" -O build/web/cdn/0.9.3/pythons.js
+          wget -q "$BASE/cpython312/main.js" -O build/web/cdn/0.9.3/cpython312/main.js
+          wget -q "$BASE/cpython312/main.data" -O build/web/cdn/0.9.3/cpython312/main.data
+          wget -q "$BASE/cpython312/main.wasm" -O build/web/cdn/0.9.3/cpython312/main.wasm
+          wget -q "$BASE/../cp312/pygame_ce-2.5.7-cp312-cp312-wasm32_bi_emscripten.whl" \
+               -O build/web/cdn/cp312/pygame_ce-2.5.7-cp312-cp312-wasm32_bi_emscripten.whl || true
+          echo "CDN assets downloaded"
+
       - name: Build web bundle
-        run: pygbag --build --ume_block 0 .
+        run: pygbag --build --ume_block 0 --cdn /cdn/0.9.3/ .
 
       - name: Bust cache
         run: |
