@@ -43,6 +43,7 @@ jobs:
 
       - name: Publish dist branch for Cloudflare Pages
         run: |
+          cp _redirects build/web/_redirects
           cd build/web
           git init
           git config user.email "actions@github.com"
